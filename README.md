@@ -36,6 +36,97 @@ dependencies {
 > 💡 Substitua `Tag` pela versão desejada disponível em: https://jitpack.io/#gregoricfranco/SiTefSalesClover
 
 ## 📱 Exemplos de Uso
+```
+class MainActivity : ComponentActivity() {
+
+    private lateinit var siTefPayment: SiTefPayment
+    private lateinit var launcher: ActivityResultLauncher<Intent>
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        val config = SiTefPaymentConfig(
+            merchantTaxId = "12345678912345",
+            isvTaxId = "12341234123412",
+        )
+
+        // Registra launcher
+        launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            siTefPayment.processarRetorno(result.data, result.resultCode, object : PaymentCallback {
+                override fun onSuccess(result: PaymentResult) {
+                    Toast.makeText(
+                        this@MainActivity,
+                        "Pagamento aprovado! NSU=${result.sitefTransactionId}",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+
+                override fun onFailure(errorMessage: String) {
+                    Toast.makeText(
+                        this@MainActivity,
+                        "Falha no pagamento: $errorMessage",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            })
+        }
+
+        // Inicializa SiTefPayment
+        siTefPayment = SiTefPayment(this, launcher, config)
+
+        setContent {
+            MyApp {
+                PayButtonScreen { pagar100Credito() }
+            }
+        }
+    }
+
+    private fun pagar100Credito() {
+        val valor = 10000 // 100 reais em centavos
+
+        siTefPayment.pagar(
+            valorCentavos = valor,
+            paymentMethod = PaymentMethod.CREDIT,
+            invoiceNumber = "1",
+            callback = object : PaymentCallback {
+                override fun onSuccess(result: PaymentResult) {
+                    Toast.makeText(
+                        this@MainActivity,
+                        "Pagamento aprovado! NSU=${result.sitefTransactionId}",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+
+                override fun onFailure(errorMessage: String) {
+                    Toast.makeText(
+                        this@MainActivity,
+                        "Falha no pagamento: $errorMessage",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+        )
+    }
+}
+
+@Composable
+fun MyApp(content: @Composable () -> Unit) {
+    MaterialTheme { content() }
+}
+
+@Composable
+fun PayButtonScreen(onPayClick: () -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(16.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Button(onClick = onPayClick) {
+            Text("Pagar R$100,00")
+        }
+    }
+}
+```
 
 ### Crédito à Vista
 ```kotlin
