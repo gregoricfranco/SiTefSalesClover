@@ -30,7 +30,7 @@ fun PaymentScreen(
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.Top
     ) {
-        Text("Teste de Pagamento pela SiTef", style = MaterialTheme.typography.titleLarge)
+        Text("Testes de Pagamento pela SiTef", style = MaterialTheme.typography.titleLarge)
         Spacer(modifier = Modifier.height(16.dp))
 
         // Crédito à vista

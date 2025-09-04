@@ -8,6 +8,7 @@ data class ReturnedFieldsDTO(
     val valorTransacao: Long = 0L,
     val dataTransacao: String = "",
     val horaTransacao: String = "",
+    val formaPagamento: String = "",
     val nsu: String = "",
     val autorizacao: String = ""
 )

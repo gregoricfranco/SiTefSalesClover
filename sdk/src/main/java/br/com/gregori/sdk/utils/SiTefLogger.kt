@@ -91,6 +91,7 @@ object SiTefLogger {
             appendLine("NSU: ${autoFields.nsu}")
             appendLine("Valor (centavos): ${autoFields.valor}")
             appendLine("Data (MMDD): ${autoFields.data}")
+            appendLine("Forma : ${autoFields.formaDePagamento}")
             appendLine("AutoFields JSON: ${autoFields.toJson()}")
         }
         Log.d(TAG, logMessage)

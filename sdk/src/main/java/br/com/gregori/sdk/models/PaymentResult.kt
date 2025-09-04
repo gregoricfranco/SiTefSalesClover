@@ -20,7 +20,9 @@ data class PaymentResult(
     val returnedFields: String? = null,
     val transactionAmount: String?,   // valor da transação em centavos
     val invoiceNumber: String?,       // número do documento
-    val invoiceDate: String?          // data da transação (DDMMAAAA)
+    val invoiceDate: String?,         // data da transação (DDMMAAAA)
+    val paymentMethodDescription: String? = null,
+
 ) {
     companion object {
         /**
@@ -39,7 +41,7 @@ data class PaymentResult(
                 acquirerId = extras.getString("acquirerId"),
                 cardBrand = extras.getString("cardBrand"),
                 sitefTransactionId = extras.getString("sitefTransactionId"),
-                hostTransactionId = extras.getString("hostTrasactionId"),
+                hostTransactionId = extras.getString("hostTransactionId"),
                 authorizationCode = extras.getString("authCode"),
                 transactionInstallments = extras.getString("transactionInstallments"),
                 merchantReceipt = extras.getString("merchantReceipt"),
@@ -47,7 +49,9 @@ data class PaymentResult(
                 returnedFields = extras.getString("returnedFields"),
                 transactionAmount = transactionAmount,
                 invoiceNumber = invoiceNumber,
-                invoiceDate = invoiceDate
+                invoiceDate = invoiceDate,
+                paymentMethodDescription = campos.formaPagamento
+
             )
         }
     }

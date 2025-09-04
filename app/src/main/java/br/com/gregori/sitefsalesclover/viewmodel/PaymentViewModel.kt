@@ -73,6 +73,7 @@ class PaymentViewModel(
         Código de resposta: ${result.responseCode ?: "N/A"}
         Tipo de transação: ${result.transactionType ?: "N/A"}
         Tipo de parcelamento: ${result.installmentType ?: "N/A"}
+        Forma de Pagamento: ${result.paymentMethodDescription}
         Cashback: ${result.cashbackAmount ?: "N/A"}
         Adquirente: ${result.acquirerId ?: "N/A"}
         Bandeira do cartão: ${result.cardBrand ?: "N/A"}

@@ -109,7 +109,6 @@ class SiTefPayment(
         callback.onSuccess(result)
     }
 
-
     /**
      * Valida os parâmetros básicos da transação.
      *
@@ -137,7 +136,7 @@ class SiTefPayment(
             callback.onFailure("Transação não pode ser cancelada - dados insuficientes")
             return false
         }
-        return true
+        return  true
     }
 
     /**
@@ -172,6 +171,9 @@ class SiTefPayment(
      */
     private fun Intent.applyPaymentMethod(paymentMethod: PaymentMethod, installments: Int = 1) {
         putExtra(SiTefExtras.FUNCTION_ID, paymentMethod.code) // Código do método de pagamento
+
+        SiTefLogger.logInfo("TAG", "Forma de pagamento=${paymentMethod.name}, parcelas=$installments")
+
         when (paymentMethod) {
             PaymentMethod.PIX -> {
                 putExtra("enabledTransactions", "7;8;")
@@ -179,15 +181,17 @@ class SiTefPayment(
             }
             PaymentMethod.CREDIT -> {
                 putExtra("transactionInstallments", "1")
-                putExtra("functionAdditionalParameters", "TransacoesHabilitadas=26")
+                putExtra("functionAdditionalParameters", "[27;28]")
             }
+
             PaymentMethod.CREDIT_INSTALLMENTS -> {
                 putExtra("transactionInstallments", installments.toString())
-                putExtra("functionAdditionalParameters", "TransacoesHabilitadas=27")
+                putExtra("functionAdditionalParameters", "[26;27]")
             }
             PaymentMethod.DEBIT -> {
                 putExtra("functionAdditionalParameters", "TransacoesHabilitadas=16")
             }
+            else -> throw IllegalArgumentException("Método de pagamento inválido para esta função: $paymentMethod")
         }
     }
 
@@ -196,7 +200,7 @@ class SiTefPayment(
      */
     private fun createCancelIntent(autoFields: AutoFieldsDTO): Intent {
         return Intent(SiTefActions.ACTION_TRANSACTION).apply {
-            putExtra(SiTefExtras.FUNCTION_ID, SiTefActions.FUNCTION_ID_CANCEL)
+            putExtra(SiTefExtras.FUNCTION_ID, autoFields.formaDePagamento.code)
             putExtra(SiTefExtras.MERCHANT_ID, config.merchantTaxId)
             putExtra(SiTefExtras.ISV_ID, config.isvTaxId)
             putExtra(SiTefExtras.AUTO_FIELDS, autoFields.toJson())
@@ -213,7 +217,23 @@ class SiTefPayment(
             Calendar.getInstance().timeInMillis.toString().takeLast(6).padStart(6, '0')
         }
         val dataCancelamento = campos.dataTransacao.toDDMMAAAA()
-        return AutoFieldsDTO(valor = valorCentavos, nsu = nsu, data = dataCancelamento)
+
+        SiTefLogger.logInfo("TAG", "CaNCELAR CANCELAR=${transacao.paymentMethodDescription}")
+
+        // Mapeia diretamente para o enum de cancelamento
+        val paymentMethodCancel = when (transacao.paymentMethodDescription) {
+            "Cartão de Crédito à Vista" -> PaymentMethod.CREDIT_CANCEL           // Crédito à vista
+            "Cartão de Crédito Parcelado Administradora" -> PaymentMethod.CREDIT_CANCEL           // Crédito parcelado (ou criar CREDIT_INSTALLMENTS_CANCEL se quiser detalhar)
+            "Cartão de Débito" -> PaymentMethod.DEBIT_CANCELLATION     // Débito
+            "Carteira Digital", "PIX" -> PaymentMethod.PIX_CANCELLATION      // PIX / carteira digital
+            else -> PaymentMethod.CREDIT_CANCEL          // fallback seguro
+        }
+
+        return AutoFieldsDTO(
+            valor = valorCentavos,
+            nsu = nsu, data = dataCancelamento,
+            formaDePagamento = paymentMethodCancel
+        )
     }
 
     /**
@@ -246,7 +266,8 @@ class SiTefPayment(
                 dataTransacao = dataTransacao,
                 horaTransacao = horaTransacao,
                 nsu = json.optJSONArray("37")?.optString(0) ?: "",
-                autorizacao = json.optJSONArray("38")?.optString(0) ?: ""
+                autorizacao = json.optJSONArray("38")?.optString(0) ?: "",
+                formaPagamento = json.optJSONArray("101")?.optString(0) ?: ""
             )
 
         } catch (e: Exception) {
